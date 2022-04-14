@@ -1,0 +1,1 @@
+web: deno run --allow-net=8800 --allow-read --cached-only app.ts
