@@ -1,3 +1,10 @@
 {
-    "deno.enable": true
+  "deno.enable": true,
+  "deno.lint": false,
+  "prettier.documentSelectors": [
+    "*.ts"
+  ],
+  "editor.formatOnType": true,
+  "javascript.format.semicolons": "insert",
+  "typescript.format.semicolons": "insert"
 }
