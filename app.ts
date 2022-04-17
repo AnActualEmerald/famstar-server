@@ -1,4 +1,4 @@
-import { opine, Logger, parse, RPC, json, ensureFile, ensureDir} from "./deps.ts";
+import { opine, Logger, parse, RPC, json, ensureFile, ensureDir, serveStatic} from "./deps.ts";
 import { Earthstar } from "./deps.ts";
 import router from "./routes.ts";
 const Shares = {
@@ -43,7 +43,7 @@ const replica = new Earthstar.Replica(Shares.famShare, Earthstar.FormatValidator
 //this should be saved somewhere when pushed to heroku
 // const author = await Earthstar.Crypto.generateAuthorKeypair('deno') as Earthstar.AuthorKeypair;
 peer.addReplica(replica);
-export { replica, author };
+export { replica, author, logger};
 const s = new Earthstar.Syncer(
   peer,
   (methods) =>
@@ -55,12 +55,10 @@ const s = new Earthstar.Syncer(
     }),
 );
 
-// // app.file("/", "./public/index.html");s
-// app.get("/ws", (req, res) => {
-  
-// });
-app.use(router);
 app.use(json());
+app.use("/", serveStatic("public"));
+app.use("/api",router);
+
 
 
 //start the server

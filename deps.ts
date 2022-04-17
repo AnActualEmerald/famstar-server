@@ -7,6 +7,7 @@ export {
   opine,
   urlencoded,
   Router,
+  serveStatic
 } from "https://deno.land/x/opine@2.1.5/mod.ts";
 export * as ImageScript from "https://deno.land/x/imagescript@v1.2.12/mod.ts";
 //This was deprecated as of 0.135.0 but I don't think opine supports FormData yet

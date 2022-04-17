@@ -1,5 +1,5 @@
 import { Router, ImageScript, MultipartReader } from "./deps.ts";
-import { author, replica} from "./app.ts";
+import { author, replica, logger} from "./app.ts";
 const key = Deno.env.get("KEY") as string;
 
 import * as R from "https://cdn.skypack.dev/ramda@^0.27.1";
@@ -50,7 +50,7 @@ r.use(async (req, res, next) => {
 r.put("/message", (req, res) => {
   const now = new Date(Date.now());
   let msg = req.body;
-  console.log(msg);
+  logger.info(msg);
   if (msg.content) {
     const path = `/messages/${now.getDate()}/${now.getTime()}.msg${
       msg.deleteAfter ? "!" : ""
@@ -66,6 +66,7 @@ r.put("/message", (req, res) => {
       res.sendStatus(500);
     });
   } else {
+    logger.warn(`Got bad request: ${msg}`)
     res.sendStatus(400);
   }
 });
