@@ -3,7 +3,6 @@ import { author, replica} from "./app.ts";
 const key = Deno.env.get("KEY") as string;
 
 import * as R from "https://cdn.skypack.dev/ramda@^0.27.1";
-// import { readAll } from "https://deno.land/std/streams/mod.ts";
 import { FormFile } from "https://deno.land/std@0.134.0/mime/mod.ts";
 
 const r = new Router();
