@@ -1,11 +1,12 @@
-import { opine, Logger, parse, RPC, json, ensureFile} from "./deps.ts";
+import { opine, Logger, parse, RPC, json, ensureFile, ensureDir} from "./deps.ts";
 import { Earthstar } from "./deps.ts";
 import router from "./routes.ts";
 const Shares = {
   famShare: Deno.env.get("SHARE") as string
 };
 
-ensureFile('./keypair.json');
+await ensureDir('./data');
+await ensureFile('./keypair.json');
 let author: Earthstar.AuthorKeypair = {
   address: "?",
   secret: "?"
