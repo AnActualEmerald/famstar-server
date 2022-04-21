@@ -30,6 +30,7 @@ r.use(async (req, res, next) => {
   //handle incoming file uploads
   let ct = req.headers.get('content-type');
   if (ct?.startsWith('multipart/form-data')) {
+    logger.info("Parsing multipart/form-data");
 
     const boundary = getBoundary(ct);
     const mr = new MultipartReader(req.raw, boundary);
@@ -50,23 +51,30 @@ r.use(async (req, res, next) => {
 r.put("/message", (req, res) => {
   const now = new Date(Date.now());
   let msg = req.body;
-  logger.info(msg);
+  logger.debug(`/message: ${JSON.stringify(msg)}`);
   if (msg.content) {
     const path = `/messages/${now.getDate()}/${now.getTime()}.msg${
       msg.deleteAfter ? "!" : ""
-    }`;
+      }`;
+    logger.info(`Adding message '${msg.content}' to replica`);
+    msg.deleteAfter ? logger.info(`Deleting after ${msg.deleteAfter} ns`) : {};
+
     replica.set(author, {
       content: msg.content,
       path,
       format: "es.4",
-      deleteAfter: msg.deleteAfter ? Date.now() * 1000 + msg.deleteAfter : null,
+      deleteAfter: msg.deleteAfter,
     }).then((v) => {
+      if (v.kind === "failure") {
+        logger.error(v.err?.message.substring(0, 100));
+        logger.error(v.reason.substring(0, 100));
+        res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
+      }
+      logger.info("OK")
       res.sendStatus(202);
-    }).catch((r) => {
-      res.sendStatus(500);
     });
   } else {
-    logger.warn(`Got bad request: ${msg}`)
+    logger.warn(`Got bad request: ${JSON.stringify(msg)}`)
     res.sendStatus(400);
   }
 });
@@ -86,7 +94,8 @@ r.post("/image", async (req, res) => {
   const temp = req.headers.get("Delete-After");
   const path = `/images/${now.getDate()}/${now.getTime()}.img${temp ? "!" : ""
     }`;
-    
+  logger.info(`Saving image ${(res.locals.file as FormFile).filename} to replica`);
+  temp ? logger.info(`Deleting after ${temp} ns`) : {};
     replica.set(author, {
       content: Uint8ToString((res.locals.file as FormFile).content as Uint8Array),
       path,
@@ -94,17 +103,14 @@ r.post("/image", async (req, res) => {
       deleteAfter: temp ? Number(temp) : null,
     }).then((v) => {
       if (v.kind === "failure") {
-        console.log(v.err?.message.substring(0, 100));
-        console.log(v.reason.substring(0, 100));
-        res.sendStatus(500);
+        logger.error(v.err?.message.substring(0, 100));
+        logger.error(v.reason.substring(0, 100));
+        res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
+        
       }
+      logger.info("OK");
       res.sendStatus(202);
     });
-  // } else {
-  //   res.sendStatus(400);
-  // }
-  // console.log(res.locals);
-  // res.sendStatus(500);
 });
 
 export default r;
