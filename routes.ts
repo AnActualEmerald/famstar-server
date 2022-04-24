@@ -57,7 +57,7 @@ r.put("/message", (req, res) => {
       msg.deleteAfter ? "!" : ""
       }`;
     logger.info(`Adding message '${msg.content}' to replica`);
-    msg.deleteAfter ? logger.info(`Deleting at ${new Date(Date.now() + msg.deleteAfter/1000)}`) : {};
+    msg.deleteAfter ? logger.info(`Deleting at ${msg.deleteAfter}`) : {};
 
     replica.set(author, {
       content: msg.content,
