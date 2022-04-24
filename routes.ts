@@ -57,18 +57,19 @@ r.put("/message", (req, res) => {
       msg.deleteAfter ? "!" : ""
       }`;
     logger.info(`Adding message '${msg.content}' to replica`);
-    msg.deleteAfter ? logger.info(`Deleting after ${msg.deleteAfter} ns`) : {};
+    msg.deleteAfter ? logger.info(`Deleting at ${new Date(Date.now() + msg.deleteAfter/1000)}`) : {};
 
     replica.set(author, {
       content: msg.content,
       path,
       format: "es.4",
-      deleteAfter: msg.deleteAfter,
+      deleteAfter: msg.deleteAfter ? new Date(msg.deleteAfter).getTime() * 1000 : null,
     }).then((v) => {
       if (v.kind === "failure") {
         logger.error(v.err?.message.substring(0, 100));
         logger.error(v.reason.substring(0, 100));
         res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
+        return
       }
       logger.info("OK")
       res.sendStatus(202);
@@ -95,18 +96,18 @@ r.post("/image", async (req, res) => {
   const path = `/images/${now.getDate()}/${now.getTime()}.img${temp ? "!" : ""
     }`;
   logger.info(`Saving image ${(res.locals.file as FormFile).filename} to replica`);
-  temp ? logger.info(`Deleting after ${temp} ns`) : {};
+  temp ? logger.info(`Deleting after ${temp}`) : {};
     replica.set(author, {
       content: Uint8ToString((res.locals.file as FormFile).content as Uint8Array),
       path,
       format: "es.4",
-      deleteAfter: temp ? Number(temp) : null,
+      deleteAfter: temp ? new Date(temp).getTime() * 1000 : null,
     }).then((v) => {
       if (v.kind === "failure") {
         logger.error(v.err?.message.substring(0, 100));
         logger.error(v.reason.substring(0, 100));
         res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
-        
+        return
       }
       logger.info("OK");
       res.sendStatus(202);
