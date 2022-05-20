@@ -2,7 +2,13 @@
 Server for my famstar project. Serves a single page app to `/` and listens for [earthstar](https://github.com/earthstar-project/earthstar) connections on `/earthstar`.
 
 ## Docker
-A docker image is available at `emerald119/famstar-server` with both x86_64 and arm64 support
+A docker image is available at `emerald119/famstar-server` with both x86_64 and arm64 support. It exposes port `8800` and a volume at `/data`. 
+
+### Example usage
+```bash
+# docker pull emerald119/famstar-server
+# docker run -p 8800:8800 -v ./data:/data emerald119/famstar-server
+```
 
 ## Getting started
 
