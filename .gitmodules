@@ -1,0 +1,3 @@
+[submodule "famstar-site"]
+	path = famstar-site
+	url = git@github.com:AnActualEmerald/famstar-site

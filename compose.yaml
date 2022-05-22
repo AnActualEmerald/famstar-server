@@ -1,11 +1,10 @@
 services:
-	server:
-		build: .
-		image: emerald119/famstar-server
-		env_file: .env
-		ports: 
-			- "8800:8800"
-		volumes:
-			- type: bind
-				source: ./data
-				target: /data
+  server:
+    image: emerald119/famstar-server
+    env_file: .env
+    ports: 
+      - "8800:8800"
+    volumes:
+      - type: bind
+        source: ./data-test
+        target: /data

@@ -4,22 +4,23 @@ import router from "./routes.ts";
 const Shares = {
   famShare: Deno.env.get("SHARE") as string
 };
+const kpFile = "./data/keypair.json";
 
 await ensureDir('./data');
-await ensureFile('./keypair.json');
+await ensureFile(kpFile);
 let author: Earthstar.AuthorKeypair = {
   address: "?",
   secret: "?"
 };
 try {
-  author = JSON.parse(new TextDecoder().decode(await Deno.readFile('./keypair.json')));
+  author = JSON.parse(new TextDecoder().decode(await Deno.readFile(kpFile)));
   if (!author.address || !author.secret) {
     author = await Earthstar.Crypto.generateAuthorKeypair('deno') as Earthstar.AuthorKeypair;
-    await Deno.writeTextFile('./keypair.json', JSON.stringify(author));
+    await Deno.writeTextFile(kpFile, JSON.stringify(author));
   }
 } catch (_e) {
   author = await Earthstar.Crypto.generateAuthorKeypair('deno') as Earthstar.AuthorKeypair;
-  await Deno.writeTextFile('./keypair.json', JSON.stringify(author));
+  await Deno.writeTextFile(kpFile, JSON.stringify(author));
 }
 
 //setup logging

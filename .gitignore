@@ -1,4 +1,6 @@
 data/
+data-test/
 shares.json
 config.json
 keypair.json
+.env

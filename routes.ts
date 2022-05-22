@@ -1,15 +1,20 @@
 import { Router, ImageScript, MultipartReader } from "./deps.ts";
 import { author, replica, logger} from "./app.ts";
-const key = Deno.env.get("KEY") as string;
 
 import * as R from "https://cdn.skypack.dev/ramda@^0.27.1";
 import { FormFile } from "https://deno.land/std@0.134.0/mime/mod.ts";
 
+const hash = async (input: string) => {
+  return await window.crypto.subtle.digest("SHA-256", toUint8Array(input))
+}
+
+
+const key = await hash(Deno.env.get("KEY") as string);
 const r = new Router();
 
 r.use((req, res, next) => {
   if (req.headers.get("key")) {
-    if (key === req.headers.get("key")) {
+    if (key === toUint8Array(req.headers.get("key") as string)) {
       res.locals.key = req.headers.get("key") as string;
       next();
     } else {
@@ -32,6 +37,7 @@ r.use(async (req, res, next) => {
   if (ct?.startsWith('multipart/form-data')) {
     logger.info("Parsing multipart/form-data");
 
+    //Replace this with FormData at some point
     const boundary = getBoundary(ct);
     const mr = new MultipartReader(req.raw, boundary);
     const form = await mr.readForm();
@@ -87,6 +93,10 @@ function Uint8ToString(u8a: Uint8Array){
     c.push(String.fromCharCode.apply(null, u8a.slice(i, i+CHUNK_SZ) as unknown as number[]));
   }
   return c.join("");
+}
+
+function toUint8Array(input: string): Uint8Array {
+  return new Uint8Array(input.split('').map(function (c) { return c.charCodeAt(0); }))
 }
 
 r.post("/image", async (req, res) => {

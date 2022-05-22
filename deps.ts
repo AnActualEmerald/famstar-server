@@ -1,6 +1,7 @@
 export { Logger } from "https://deno.land/x/optic@1.3.5/mod.ts";
 export { parse } from "https://deno.land/std@0.134.0/flags/mod.ts";
-export * as Earthstar from "https://deno.land/x/earthstar@v8.2.4/mod.ts";
+//export * as Earthstar from "https://deno.land/x/earthstar@v8.2.4/mod.ts";
+export * as Earthstar from "https://raw.githubusercontent.com/AnActualEmerald/earthstar/main/mod.ts";
 export * as RPC from "https://deno.land/x/earthstar_streaming_rpc@v5.0.0/mod.ts";
 export {
   json,
