@@ -12,20 +12,20 @@ const hash = async (input: string) => {
 const key = await hash(Deno.env.get("KEY") as string);
 const r = new Router();
 
-r.use((req, res, next) => {
-  if (req.headers.get("key")) {
-    if (key === toUint8Array(req.headers.get("key") as string)) {
-      res.locals.key = req.headers.get("key") as string;
-      next();
-    } else {
-      res.sendStatus(403);
-      next(new Error("Forbidden"));
-    }
-  } else {
-    res.sendStatus(403);
-    next(new Error("Forbidden"));
-  }
-});
+// r.use((req, res, next) => {
+//   if (req.headers.get("key")) {
+//     if (key === toUint8Array(req.headers.get("key") as string)) {
+//       res.locals.key = req.headers.get("key") as string;
+//       next();
+//     } else {
+//       res.sendStatus(403);
+//       next(new Error("Forbidden"));
+//     }
+//   } else {
+//     res.sendStatus(403);
+//     next(new Error("Forbidden"));
+//   }
+// });
 
 const { compose, nth, split } = R;
 const getBoundary = compose(nth(1), split('='), nth(1), split(';'));
@@ -122,6 +122,20 @@ r.post("/image", async (req, res) => {
       logger.info("OK");
       res.sendStatus(202);
     });
+});
+
+r.get("/docs", async (req, res) => {
+  const page = req.query?.page || 1;
+  const limit = req.query?.limit || 9;
+  let docs = await replica.queryDocs({
+    orderBy: 'localIndex ASC',
+    startAfter: { localIndex: limit * (page - 1) },
+    limit,
+    historyMode: 'latest'
+  });
+
+  res.send(JSON.stringify(docs))
+  
 });
 
 export default r;

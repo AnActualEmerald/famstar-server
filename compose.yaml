@@ -1,6 +1,7 @@
 services:
   server:
-    image: emerald119/famstar-server
+    build: .
+    pull_policy: always
     env_file: .env
     ports: 
       - "8800:8800"

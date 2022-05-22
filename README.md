@@ -22,11 +22,6 @@ Ensure that the `SHARE` environment variable is set to a valid Earthstar share a
 - Optionally edit the `compose.yaml` file to change which port the server will listen on. Defaults to `8800`
 - Start the server with `docker-compose up`
 
-### Running with the [just](https://github.com/casey/just) command runner
-
-- Make sure just is installed and in your `PATH` (`cargo install just`)
-- Run `just start` to build the front end and start the server
-
 ### Running manually
 
 - Remove the contents of the `famstar-server/public` directory with `rm -rf ./public/*`
