@@ -1,7 +1,6 @@
 services:
   server:
     build: .
-    pull_policy: always
     env_file: .env
     ports: 
       - "8800:8800"

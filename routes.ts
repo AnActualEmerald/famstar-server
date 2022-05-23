@@ -5,27 +5,28 @@ import * as R from "https://cdn.skypack.dev/ramda@^0.27.1";
 import { FormFile } from "https://deno.land/std@0.134.0/mime/mod.ts";
 
 const hash = async (input: string) => {
-  return await window.crypto.subtle.digest("SHA-256", toUint8Array(input))
+
+  return await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(input))
 }
 
 
-const key = await hash(Deno.env.get("KEY") as string);
+const key = Deno.env.get("KEY") as string;
 const r = new Router();
 
-// r.use((req, res, next) => {
-//   if (req.headers.get("key")) {
-//     if (key === toUint8Array(req.headers.get("key") as string)) {
-//       res.locals.key = req.headers.get("key") as string;
-//       next();
-//     } else {
-//       res.sendStatus(403);
-//       next(new Error("Forbidden"));
-//     }
-//   } else {
-//     res.sendStatus(403);
-//     next(new Error("Forbidden"));
-//   }
-// });
+r.use((req, res, next) => {
+  if (req.headers.get("key")) {
+    if (key === req.headers.get("key")) {
+      res.locals.key = req.headers.get("key") as string;
+      next();
+    } else {
+      res.sendStatus(403);
+      next(new Error("Forbidden"));
+    }
+  } else {
+    res.sendStatus(403);
+    next(new Error("Forbidden"));
+  }
+});
 
 const { compose, nth, split } = R;
 const getBoundary = compose(nth(1), split('='), nth(1), split(';'));
@@ -133,7 +134,7 @@ r.get("/docs", async (req, res) => {
     limit,
     historyMode: 'latest'
   });
-
+  
   res.send(JSON.stringify(docs))
   
 });
