@@ -13,4 +13,6 @@ export {
 export * as ImageScript from "https://deno.land/x/imagescript@v1.2.12/mod.ts";
 //This was deprecated as of 0.135.0 but I don't think opine supports FormData yet
 export { MultipartReader } from "https://deno.land/std@0.134.0/mime/mod.ts";
-export { ensureFile, ensureDir } from "https://deno.land/std@0.135.0/fs/mod.ts";
+export { ensureFile, ensureDir } from "https://deno.land/std@0.135.0/fs/mod.ts"; 
+
+export * as Postgres from "https://deno.land/x/postgresjs@v3.2.3/mod.js";
