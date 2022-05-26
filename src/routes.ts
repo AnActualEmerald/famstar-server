@@ -1,8 +1,5 @@
-import { Router, ImageScript, MultipartReader } from "./deps.ts";
+import { Router, MultipartReader, R, FormFile } from "./deps.ts";
 import { author, replica, logger} from "./app.ts";
-
-import * as R from "https://cdn.skypack.dev/ramda@^0.27.1";
-import { FormFile } from "https://deno.land/std@0.134.0/mime/mod.ts";
 
 const hash = async (input: string) => {
 
