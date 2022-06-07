@@ -1,11 +1,12 @@
-import { Router, MultipartReader, R, FormFile } from "./deps.ts";
-import { author, replica, logger} from "./app.ts";
+import { FormFile, MultipartReader, R, Router } from "./deps.ts";
+import { author, logger, replica } from "./app.ts";
 
 const hash = async (input: string) => {
-
-  return await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(input))
-}
-
+  return await window.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(input),
+  );
+};
 
 const key = Deno.env.get("KEY") as string;
 const r = new Router();
@@ -26,13 +27,12 @@ r.use((req, res, next) => {
 });
 
 const { compose, nth, split } = R;
-const getBoundary = compose(nth(1), split('='), nth(1), split(';'));
+const getBoundary = compose(nth(1), split("="), nth(1), split(";"));
 
 r.use(async (req, res, next) => {
-
   //handle incoming file uploads
-  let ct = req.headers.get('content-type');
-  if (ct?.startsWith('multipart/form-data')) {
+  let ct = req.headers.get("content-type");
+  if (ct?.startsWith("multipart/form-data")) {
     logger.info("Parsing multipart/form-data");
 
     //Replace this with FormData at some point
@@ -51,7 +51,6 @@ r.use(async (req, res, next) => {
   }
 });
 
-
 r.put("/message", (req, res) => {
   const now = new Date(Date.now());
   let msg = req.body;
@@ -59,7 +58,7 @@ r.put("/message", (req, res) => {
   if (msg.content) {
     const path = `/messages/${now.getDate()}/${now.getTime()}.msg${
       msg.deleteAfter ? "!" : ""
-      }`;
+    }`;
     logger.info(`Adding message '${msg.content}' to replica`);
     msg.deleteAfter ? logger.info(`Deleting at ${msg.deleteAfter}`) : {};
 
@@ -67,73 +66,98 @@ r.put("/message", (req, res) => {
       content: msg.content,
       path,
       format: "es.4",
-      deleteAfter: msg.deleteAfter ? new Date(msg.deleteAfter).getTime() * 1000 : null,
+      deleteAfter: msg.deleteAfter
+        ? new Date(msg.deleteAfter).getTime() * 1000
+        : null,
     }).then((v) => {
       if (v.kind === "failure") {
         logger.error(v.err?.message.substring(0, 100));
         logger.error(v.reason.substring(0, 100));
         res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
-        return
+        return;
       }
-      logger.info("OK")
+      logger.info("OK");
       res.sendStatus(202);
     });
   } else {
-    logger.warn(`Got bad request: ${JSON.stringify(msg)}`)
+    logger.warn(`Got bad request: ${JSON.stringify(msg)}`);
     res.sendStatus(400);
   }
 });
 
-function Uint8ToString(u8a: Uint8Array){
+function Uint8ToString(u8a: Uint8Array) {
   var CHUNK_SZ = 0x8000;
   var c = [];
-  for (var i=0; i < u8a.length; i+=CHUNK_SZ) {
-    c.push(String.fromCharCode.apply(null, u8a.slice(i, i+CHUNK_SZ) as unknown as number[]));
+  for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+    c.push(
+      String.fromCharCode.apply(
+        null,
+        u8a.slice(i, i + CHUNK_SZ) as unknown as number[],
+      ),
+    );
   }
   return c.join("");
 }
 
 function toUint8Array(input: string): Uint8Array {
-  return new Uint8Array(input.split('').map(function (c) { return c.charCodeAt(0); }))
+  return new Uint8Array(
+    input.split("").map(function (c) {
+      return c.charCodeAt(0);
+    }),
+  );
 }
 
 r.post("/image", async (req, res) => {
   const now = new Date(Date.now());
   // if (res.locals) {
   const temp = req.headers.get("Delete-After");
-  const path = `/images/${now.getDate()}/${now.getTime()}.img${temp ? "!" : ""
-    }`;
-  logger.info(`Saving image ${(res.locals.file as FormFile).filename} to replica`);
+  const path = `/images/${now.getDate()}/${now.getTime()}.img${
+    temp ? "!" : ""
+  }`;
+  logger.info(
+    `Saving image ${(res.locals.file as FormFile).filename} to replica`,
+  );
   temp ? logger.info(`Deleting after ${temp}`) : {};
-    replica.set(author, {
-      content: Uint8ToString((res.locals.file as FormFile).content as Uint8Array),
-      path,
-      format: "es.4",
-      deleteAfter: temp ? new Date(temp).getTime() * 1000 : null,
-    }).then((v) => {
-      if (v.kind === "failure") {
-        logger.error(v.err?.message.substring(0, 100));
-        logger.error(v.reason.substring(0, 100));
-        res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
-        return
-      }
-      logger.info("OK");
-      res.sendStatus(202);
-    });
+  replica.set(author, {
+    content: Uint8ToString((res.locals.file as FormFile).content as Uint8Array),
+    path,
+    format: "es.4",
+    deleteAfter: temp ? new Date(temp).getTime() * 1000 : null,
+  }).then((v) => {
+    if (v.kind === "failure") {
+      logger.error(v.err?.message.substring(0, 100));
+      logger.error(v.reason.substring(0, 100));
+      res.sendStatus(500).json({ error: v.err?.message, reason: v.reason });
+      return;
+    }
+    logger.info("OK");
+    res.sendStatus(202);
+  });
 });
 
 r.get("/docs", async (req, res) => {
-  const page = req.query?.page || 1;
-  const limit = req.query?.limit || 9;
   let docs = await replica.queryDocs({
-    orderBy: 'localIndex ASC',
-    startAfter: { localIndex: limit * (page - 1) },
-    limit,
-    historyMode: 'latest'
+    orderBy: "localIndex ASC",
+    filter: {
+      contentLengthGt: 0,
+    },
+    historyMode: "latest",
   });
-  
-  res.send(JSON.stringify(docs))
-  
+
+  docs = docs.filter((e) => e.content != "");
+
+  res.send(JSON.stringify(docs));
+});
+
+r.get(/\/delete\/(.*)/, async (req, res) => {
+  const path = req.params[0];
+  await replica.set(author, {
+    path,
+    content: "",
+    format: "es.4",
+  });
+
+  res.sendStatus(202);
 });
 
 export default r;

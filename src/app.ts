@@ -1,4 +1,4 @@
-import { opine, Logger, Level, parse, RPC, json, ensureFile, ensureDir, serveStatic} from "./deps.ts";
+import { opine, Logger, Level, RPC, json, ensureDir, serveStatic} from "./deps.ts";
 import { Earthstar } from "./deps.ts";
 import router from "./routes.ts";
 import sql from "./db.ts";
