@@ -144,18 +144,25 @@ r.get("/docs", async (req, res) => {
     historyMode: "latest",
   });
 
-  docs = docs.filter((e) => e.content != "");
-
   res.send(JSON.stringify(docs));
 });
 
 r.get(/\/delete\/(.*)/, async (req, res) => {
   const path = req.params[0];
-  await replica.set(author, {
+  const e = await replica.set(author, {
     path,
     content: "",
     format: "es.4",
   });
+
+  if (e.kind === "failure") {
+    logger.error(e.err?.message);
+    logger.error(e.reason);
+    res.sendStatus(500).json({ error: e.err?.message, reason: e.reason });
+    return;
+  }
+
+  logger.info(`Overwrote document at ${path}`);
 
   res.sendStatus(202);
 });
