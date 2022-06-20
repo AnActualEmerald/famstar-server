@@ -7,6 +7,6 @@ if (!dbUrl) {
   Deno.exit(-1);
 }
 
-const sql = postgres(dbUrl, { ssl: "prefer" });
+const sql = postgres(dbUrl, { ssl: true });
 
 export default sql;
