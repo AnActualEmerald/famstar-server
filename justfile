@@ -1,3 +1,5 @@
+set dotenv-load := true
+
 build:
 	docker-compose build
 	
@@ -6,3 +8,6 @@ dev: build
 
 run file='src/app.ts': 
 	deno run -A {{file}}
+
+cache file='src/app.ts':
+	deno cache {{file}}

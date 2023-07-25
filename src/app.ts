@@ -8,7 +8,7 @@ import {
   serveStatic,
 } from "./deps.ts";
 import { Earthstar } from "./deps.ts";
-import { type AuthorKeypair, type ShareKeypair, Replica } from "https://deno.land/x/earthstar@v10.2.1/mod.ts";
+import { type AuthorKeypair, Replica } from "https://deno.land/x/earthstar@v10.2.1/mod.ts";
 import router from "./routes.ts";
 // import sql from "./db.ts";
 
@@ -22,7 +22,7 @@ if (!settings.author) {
   settings.author = authorKp as AuthorKeypair;
 }
 
-if (settings.shares.length) {
+if (settings.shares.length == 0) {
   const shareKp = await Earthstar.Crypto.generateShareKeypair("fam");
   if (!Earthstar.isErr(shareKp)) {
     settings.addShare(shareKp.shareAddress);
@@ -32,28 +32,25 @@ if (settings.shares.length) {
 }
 
 export const author = settings.author;
-export const replica = new Replica({
-  driver: {
-    docDriver: new DocDriverMemory
-  }
-});
 
 //setup logging
 // const logLevel = Deno.env.get("FAMSTAR_LOG");
 export const logger = new Logger().withMinLogLevel(Level.Debug);
 
-const DEFAULT_PORT = 8800;
+const WEB_PORT = 8800;
+const SYNC_PORT = 8801;
 const envPort = Deno.env.get("PORT");
-const port = envPort ? Number(envPort) : DEFAULT_PORT;
+const port = envPort ? Number(envPort) : SYNC_PORT;
 
 const app = opine();
+export let localReplica: Replica | null = null;
 
 //setup earthstar
 const server = new Earthstar.Server([
   new Earthstar.ExtensionKnownShares({
     knownSharesPath: './data/known_shares.json',
     onCreateReplica: (addr) => {
-      return new Earthstar.Replica({
+      const rep = new Earthstar.Replica({
         driver: {
           docDriver: new Earthstar.DocDriverSqlite({
             share: addr,
@@ -64,7 +61,12 @@ const server = new Earthstar.Server([
             `./data/${addr}_attachments`,
           ),
         },
+        shareSecret: settings.shareSecrets[addr]
       });
+
+      localReplica = rep;
+
+      return rep;
     },
   }),
   new Earthstar.ExtensionSyncWeb({
@@ -96,9 +98,13 @@ app.use(json());
 app.use("/", serveStatic("public"));
 app.use("/api", router);
 
-//start the server
-app.listen(port, () => {
-  logger.info(`Server started at http://localhost:${port}`);
+//start the web server
+const web_env_port = Deno.env.get('WEB_PORT');
+
+const web_port =web_env_port ? Number(web_env_port) : WEB_PORT;
+
+app.listen(web_port,  () => {
+  logger.info(`Server started at http://localhost:${web_port}`);
 });
 
 // s.transport.connections.onAdd((conn) => {

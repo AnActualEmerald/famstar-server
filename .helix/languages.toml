@@ -1,0 +1,10 @@
+[language-server.deno-lsp]
+command = "deno"
+args = ["lsp"]
+config = { enable = true }
+
+[[language]]
+name="typescript"
+language-servers = ["deno-lsp"]
+roots = [".git"]
+
