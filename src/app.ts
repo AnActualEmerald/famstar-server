@@ -7,18 +7,17 @@ import {
   RPC,
   serveStatic,
 } from "./deps.ts";
-import { Earthstar } from "./deps.ts";
-import { type AuthorKeypair, Replica } from "https://deno.land/x/earthstar@v10.2.1/mod.ts";
+import { Crypto, type AuthorKeypair, Replica, SharedSettings, isErr, Server, ExtensionKnownShares, DocDriverSqlite, AttachmentDriverFilesystem, ExtensionSyncWeb } from "earthstar";
 import router from "./routes.ts";
 // import sql from "./db.ts";
 
 
 await ensureDir("./data");
 
-const settings = new Earthstar.SharedSettings();
+const settings = new SharedSettings();
 
 if (!settings.author) {
-  const authorKp = await Earthstar.Crypto.generateAuthorKeypair("deno");
+  const authorKp = await Crypto.generateAuthorKeypair("deno");
   settings.clear();
   Deno.remove('./data/known_shares.json').catch(e => {
     console.warn("failed to remove old known shares: ", e);
@@ -28,8 +27,8 @@ if (!settings.author) {
 
 
 if (settings.shares.length == 0) {
-  const shareKp = await Earthstar.Crypto.generateShareKeypair("fam");
-  if (!Earthstar.isErr(shareKp)) {
+  const shareKp = await Crypto.generateShareKeypair("fam");
+  if (!isErr(shareKp)) {
     settings.addShare(shareKp.shareAddress);
     settings.addSecret(shareKp.shareAddress, shareKp.secret);
     await Deno.writeTextFile('./data/known_shares.json', JSON.stringify(settings.shares));
@@ -51,18 +50,18 @@ const app = opine();
 export let localReplica: Replica | null = null;
 
 //setup earthstar
-const server = new Earthstar.Server([
-  new Earthstar.ExtensionKnownShares({
+const server = new Server([
+  new ExtensionKnownShares({
     knownSharesPath: './data/known_shares.json',
     onCreateReplica: (addr) => {
-      const rep = new Earthstar.Replica({
+      const rep = new Replica({
         driver: {
-          docDriver: new Earthstar.DocDriverSqlite({
+          docDriver: new DocDriverSqlite({
             share: addr,
             filename: `./data/${addr}_data.sql`,
             mode: "create-or-open",
           }),
-          attachmentDriver: new Earthstar.AttachmentDriverFilesystem(
+          attachmentDriver: new AttachmentDriverFilesystem(
             `./data/${addr}_attachments`,
           ),
         },
@@ -74,7 +73,7 @@ const server = new Earthstar.Server([
       return rep;
     },
   }),
-  new Earthstar.ExtensionSyncWeb(),
+  new ExtensionSyncWeb(),
 ], {
   port
 });
