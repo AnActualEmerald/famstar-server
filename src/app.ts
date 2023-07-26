@@ -19,8 +19,13 @@ const settings = new Earthstar.SharedSettings();
 
 if (!settings.author) {
   const authorKp = await Earthstar.Crypto.generateAuthorKeypair("deno");
+  settings.clear();
+  Deno.remove('./data/known_shares.json').catch(e => {
+    console.warn("failed to remove old known shares: ", e);
+  });
   settings.author = authorKp as AuthorKeypair;
 }
+
 
 if (settings.shares.length == 0) {
   const shareKp = await Earthstar.Crypto.generateShareKeypair("fam");
@@ -69,9 +74,7 @@ const server = new Earthstar.Server([
       return rep;
     },
   }),
-  new Earthstar.ExtensionSyncWeb({
-    path: "/earthstar",
-  }),
+  new Earthstar.ExtensionSyncWeb(),
 ], {
   port
 });

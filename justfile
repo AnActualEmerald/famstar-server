@@ -10,4 +10,4 @@ run file='src/app.ts':
 	deno run -A {{file}}
 
 cache file='src/app.ts':
-	deno cache {{file}}
+	deno cache {{file}} --lock

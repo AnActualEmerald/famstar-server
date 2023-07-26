@@ -1,1 +1,0 @@
-web: deno run --unstable --unsafely-ignore-certificate-errors=$POSTGRES_HOST --allow-read --allow-write --allow-net --allow-env src/app.ts
